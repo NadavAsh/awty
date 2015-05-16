@@ -26,11 +26,13 @@ public class MainActivity extends ActionBarActivity {
     public static final int MINUTE = 1000;
     public static final String MESSAGE = "com.washington.nadava.awty.sendmessage.MESSAGE";
     public static final String NUMBER = "com.washington.nadava.awty.sendmessage.NUMBER";
+    public static final String INTERVAL = "com.washington.nadava.awty.sendmessage.INTERVAL";
+
 
     private boolean running;
-    PendingIntent alarmIntent;
-    BroadcastReceiver alarmReceiver;
-    AlarmManager alarmManager;
+    private BroadcastReceiver alarmReceiver;
+    private AlarmManager alarmManager;
+    private PendingIntent alarmIntent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +54,16 @@ public class MainActivity extends ActionBarActivity {
 
                 String fullMessage = number + ": " + message;
                 Toast.makeText(MainActivity.this, fullMessage, Toast.LENGTH_SHORT).show();
+
+
+                alarmIntent = PendingIntent.getBroadcast(MainActivity.this, 0, intent,
+                        PendingIntent.FLAG_UPDATE_CURRENT);
+                // Use set alarm instead of repeating because repeating screws up on newer devices.
+                if (running) {
+                    alarmManager.set(AlarmManager.RTC,
+                            System.currentTimeMillis() + intent.getIntExtra(INTERVAL, MINUTE),
+                            alarmIntent);
+                }
             }
         };
 
@@ -81,11 +93,12 @@ public class MainActivity extends ActionBarActivity {
                     if (intervalText.getText().length() == 0) interval = MINUTE;
                     else
                         interval = Integer.parseInt(intervalText.getText().toString()) * MINUTE;
+                    i.putExtra(INTERVAL, interval);
 
                     alarmIntent = PendingIntent.getBroadcast(MainActivity.this, 0, i,
                             PendingIntent.FLAG_UPDATE_CURRENT);
-                    alarmManager.setRepeating(AlarmManager.RTC, System.currentTimeMillis() + interval,
-                            interval, alarmIntent);
+                    // Use set instead of repeating because set is better.
+                    alarmManager.set(AlarmManager.RTC, System.currentTimeMillis() + interval, alarmIntent);
                 } else {
                     toggle.setText(R.string.start);
                     alarmIntent.cancel();
