@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -20,6 +21,8 @@ import org.w3c.dom.Text;
 
 
 public class MainActivity extends ActionBarActivity {
+    public static final String TAG = "MainActivity";
+
     public static final int MINUTE = 1000;
     public static final String MESSAGE = "com.washington.nadava.awty.sendmessage.MESSAGE";
     public static final String NUMBER = "com.washington.nadava.awty.sendmessage.NUMBER";
@@ -27,27 +30,34 @@ public class MainActivity extends ActionBarActivity {
     private boolean running;
     PendingIntent alarmIntent;
     BroadcastReceiver alarmReceiver;
+    AlarmManager alarmManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         alarmReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
+                Log.i(TAG, "Alarm received.");
+                String message = intent.getStringExtra(MESSAGE);
+                if (message == null || message.isEmpty()) {
+                    message = "Are we there yet?";
+                }
+
                 String number = intent.getStringExtra(NUMBER);
-                if (number == null) {
+                if (number == null || number.isEmpty()) {
                     number = "(425) 555-1212";
                 }
-                String message = number + ": " + intent.getStringExtra(MESSAGE);
-                Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
+
+                String fullMessage = number + ": " + message;
+                Toast.makeText(MainActivity.this, fullMessage, Toast.LENGTH_SHORT).show();
             }
         };
 
         registerReceiver(alarmReceiver, new IntentFilter("com.washington.nadava.awty.sendmessage"));
 
-        final AlarmManager alarmManager = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
+        alarmManager = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
 
         final TextView messageText = (TextView)findViewById(R.id.editText);
         final TextView phoneText = (TextView)findViewById(R.id.phoneText);
@@ -67,11 +77,15 @@ public class MainActivity extends ActionBarActivity {
                     i.putExtra(MESSAGE, messageText.getText().toString());
                     i.putExtra(NUMBER, phoneText.getText().toString());
 
-                    int interval = Integer.parseInt(intervalText.getText().toString()) * MINUTE;
+                    int interval;
+                    if (intervalText.getText().length() == 0) interval = MINUTE;
+                    else
+                        interval = Integer.parseInt(intervalText.getText().toString()) * MINUTE;
+
                     alarmIntent = PendingIntent.getBroadcast(MainActivity.this, 0, i,
                             PendingIntent.FLAG_UPDATE_CURRENT);
                     alarmManager.setRepeating(AlarmManager.RTC, System.currentTimeMillis() + interval,
-                                              interval, alarmIntent);
+                            interval, alarmIntent);
                 } else {
                     toggle.setText(R.string.start);
                     alarmIntent.cancel();
@@ -79,6 +93,13 @@ public class MainActivity extends ActionBarActivity {
 
             }
         });
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        alarmManager.cancel(alarmIntent);
+        unregisterReceiver(alarmReceiver);
     }
 
     @Override
