@@ -23,7 +23,7 @@ import org.w3c.dom.Text;
 public class MainActivity extends ActionBarActivity {
     public static final String TAG = "MainActivity";
 
-    public static final int MINUTE = 1000;
+    public static final int MINUTE = 60 * 1000;
     public static final String MESSAGE = "com.washington.nadava.awty.sendmessage.MESSAGE";
     public static final String NUMBER = "com.washington.nadava.awty.sendmessage.NUMBER";
     public static final String INTERVAL = "com.washington.nadava.awty.sendmessage.INTERVAL";
