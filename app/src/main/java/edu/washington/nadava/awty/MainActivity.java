@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.telephony.SmsManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -23,7 +24,7 @@ import org.w3c.dom.Text;
 public class MainActivity extends ActionBarActivity {
     public static final String TAG = "MainActivity";
 
-    public static final int MINUTE = 60 * 1000;
+    public static final int MINUTE = 1000;
     public static final String MESSAGE = "com.washington.nadava.awty.sendmessage.MESSAGE";
     public static final String NUMBER = "com.washington.nadava.awty.sendmessage.NUMBER";
     public static final String INTERVAL = "com.washington.nadava.awty.sendmessage.INTERVAL";
@@ -33,11 +34,15 @@ public class MainActivity extends ActionBarActivity {
     private BroadcastReceiver alarmReceiver;
     private AlarmManager alarmManager;
     private PendingIntent alarmIntent;
+    private SmsManager smsManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        smsManager = SmsManager.getDefault();
+
         alarmReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
@@ -54,6 +59,7 @@ public class MainActivity extends ActionBarActivity {
 
                 String fullMessage = number + ": " + message;
                 Toast.makeText(MainActivity.this, fullMessage, Toast.LENGTH_SHORT).show();
+                smsManager.sendTextMessage(number, null, message, null, null);
 
 
                 alarmIntent = PendingIntent.getBroadcast(MainActivity.this, 0, intent,
